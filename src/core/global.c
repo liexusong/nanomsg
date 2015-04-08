@@ -371,9 +371,10 @@ int nn_socket (int domain, int protocol)
         if (socktype->domain == domain && socktype->protocol == protocol) { // 如果是合适的socket类型
 
             /*  Instantiate the socket. */
-            sock = nn_alloc (sizeof (struct nn_sock), "sock");
+            sock = nn_alloc (sizeof (struct nn_sock), "sock"); // 创建nn_sock对象
             alloc_assert (sock);
-            rc = nn_sock_init (sock, socktype);
+
+            rc = nn_sock_init (sock, socktype); // 初始化nn_sock对象(在文件sock.c中)
             if (rc < 0)
                 goto error;
 
@@ -381,6 +382,7 @@ int nn_socket (int domain, int protocol)
             self.socks [s] = sock;
             ++self.nsocks;
             nn_glock_unlock ();
+
             return s;
         }
     }
