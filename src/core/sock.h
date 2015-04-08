@@ -53,7 +53,7 @@ struct nn_sock
 
     int flags;
 
-    struct nn_ctx ctx;
+    struct nn_ctx ctx;    // AIO context
     struct nn_efd sndfd;
     struct nn_efd rcvfd;
     struct nn_sem termsem;

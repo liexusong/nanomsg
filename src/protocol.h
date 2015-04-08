@@ -121,7 +121,7 @@ struct nn_sockbase_vfptr {
 };
 
 struct nn_sockbase {
-    const struct nn_sockbase_vfptr *vfptr;
+    const struct nn_sockbase_vfptr *vfptr; // socket的操作接口
     struct nn_sock *sock;
 };
 

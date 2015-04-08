@@ -187,6 +187,9 @@ int nn_pipebase_ispeer (struct nn_pipebase *self, int socktype);
 /*  The transport class.                                                      */
 /******************************************************************************/
 
+/*
+ * 协议结构体, 包括一些协议的操作接口
+ */
 struct nn_transport {
 
     /*  Name of the transport as it appears in the connection strings ("tcp",

@@ -153,10 +153,13 @@ struct nn_cmsghdr *nn_cmsg_nexthdr (const struct nn_msghdr *mhdr,
     return (struct nn_cmsghdr*) (((uint8_t*) cmsg) + sz);
 }
 
+/*
+ * 初始化global结构体
+ */
 static void nn_global_init (void)
 {
     int i;
-#if defined NN_HAVE_WINDOWS
+#if defined NN_HAVE_WINDOWS  /* win */
     WSADATA data;
     int rc;
 #endif
@@ -174,38 +177,45 @@ static void nn_global_init (void)
 #endif
 
     /*  Initialise the memory allocation subsystem. */
+    // 初始化内存分配器
     nn_alloc_init ();
 
     /*  Seed the pseudo-random number generator. */
+    // 设置随机数种子
     nn_random_seed ();
 
     /*  Allocate the global table of SP sockets. */
+    // 创建sockets桶
     self.socks = nn_alloc ((sizeof (struct nn_sock*) * NN_MAX_SOCKETS) +
         (sizeof (uint16_t) * NN_MAX_SOCKETS), "socket table");
     alloc_assert (self.socks);
+
     for (i = 0; i != NN_MAX_SOCKETS; ++i)
         self.socks [i] = NULL;
+
     self.nsocks = 0;
     self.flags = 0;
 
     /*  Allocate the stack of unused file descriptors. */
     self.unused = (uint16_t*) (self.socks + NN_MAX_SOCKETS);
     alloc_assert (self.unused);
+
     for (i = 0; i != NN_MAX_SOCKETS; ++i)
         self.unused [i] = NN_MAX_SOCKETS - i - 1;
 
     /*  Initialise other parts of the global state. */
-    nn_list_init (&self.transports);
-    nn_list_init (&self.socktypes);
+    nn_list_init (&self.transports);  // 传输协议列表
+    nn_list_init (&self.socktypes);   // socket类型列表
 
     /*  Plug in individual transports. */
     nn_global_add_transport (nn_inproc);
 #if !defined NN_HAVE_WINDOWS
     nn_global_add_transport (nn_ipc);
 #endif
-    nn_global_add_transport (nn_tcp);
+    nn_global_add_transport (nn_tcp);  // TCP协议
 
     /*  Plug in individual socktypes. */
+    // 注册socket类型
     nn_global_add_socktype (nn_pair_socktype);
     nn_global_add_socktype (nn_xpair_socktype);
     nn_global_add_socktype (nn_pub_socktype);
@@ -226,7 +236,7 @@ static void nn_global_init (void)
     nn_global_add_socktype (nn_xbus_socktype);
 
     /*  Start the worker threads. */
-    nn_pool_init (&self.pool);
+    nn_pool_init (&self.pool); // 初始化worker线程
 }
 
 static void nn_global_term (void)
@@ -307,6 +317,11 @@ int nn_freemsg (void *msg)
     return 0;
 }
 
+/**
+ * @param int domain: which domain
+ * @param int protocol: protocol
+ * @return int
+ */
 int nn_socket (int domain, int protocol)
 {
     int rc;
@@ -318,7 +333,7 @@ int nn_socket (int domain, int protocol)
     nn_glock_lock ();
 
     /*  Make sure that global state is initialised. */
-    nn_global_init ();
+    nn_global_init (); // 初始化global结构体
 
     /*  If nn_term() was already called, return ETERM. */
     if (nn_slow (self.flags & NN_CTX_FLAG_ZOMBIE)) {
@@ -350,9 +365,10 @@ int nn_socket (int domain, int protocol)
     /*  Find the appropriate socket type. */
     for (it = nn_list_begin (&self.socktypes);
           it != nn_list_end (&self.socktypes);
-          it = nn_list_next (&self.socktypes, it)) {
+          it = nn_list_next (&self.socktypes, it)) { // 遍历所有socket类型
+
         socktype = nn_cont (it, struct nn_socktype, item);
-        if (socktype->domain == domain && socktype->protocol == protocol) {
+        if (socktype->domain == domain && socktype->protocol == protocol) { // 如果是合适的socket类型
 
             /*  Instantiate the socket. */
             sock = nn_alloc (sizeof (struct nn_sock), "sock");
@@ -742,7 +758,6 @@ static void nn_global_add_transport (struct nn_transport *transport)
         transport->init ();
     nn_list_insert (&self.transports, &transport->item,
         nn_list_end (&self.transports));
-    
 }
 
 static void nn_global_add_socktype (struct nn_socktype *socktype)

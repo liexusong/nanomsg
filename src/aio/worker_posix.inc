@@ -99,10 +99,10 @@ int nn_worker_init (struct nn_worker *self)
     if (rc < 0)
         return rc;
 
-    nn_mutex_init (&self->sync);
-    nn_queue_init (&self->tasks);
-    nn_queue_item_init (&self->stop);
-    nn_poller_init (&self->poller);
+    nn_mutex_init (&self->sync);      // 锁
+    nn_queue_init (&self->tasks);     // 队列
+    nn_queue_item_init (&self->stop); //
+    nn_poller_init (&self->poller);   // IO事件监听器
     nn_poller_add (&self->poller, nn_efd_getfd (&self->efd), &self->efd_hndl);
     nn_poller_set_in (&self->poller, &self->efd_hndl);
     nn_timerset_init (&self->timerset);

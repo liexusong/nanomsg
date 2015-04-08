@@ -83,10 +83,11 @@ int nn_sock_init (struct nn_sock *self, struct nn_socktype *socktype)
     if (socktype->flags & NN_SOCKTYPE_FLAG_NOSEND)
         memset (&self->sndfd, 0xcd, sizeof (self->sndfd));
     else {
-        rc = nn_efd_init (&self->sndfd);
+        rc = nn_efd_init (&self->sndfd); // 初始化信息通知句柄
         if (nn_slow (rc < 0))
             return rc;
     }
+
     if (socktype->flags & NN_SOCKTYPE_FLAG_NORECV)
         memset (&self->rcvfd, 0xcd, sizeof (self->rcvfd));
     else {
@@ -97,6 +98,7 @@ int nn_sock_init (struct nn_sock *self, struct nn_socktype *socktype)
             return rc;
         }
     }
+
     nn_sem_init (&self->termsem);
     if (nn_slow (rc < 0)) {
         if (!(socktype->flags & NN_SOCKTYPE_FLAG_NORECV))
